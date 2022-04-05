@@ -67,6 +67,7 @@ class Trainer(object):
         else:
             raise NotImplementedError
 
+
         if args.loss == 'CE':
             self.criterion = CrossEntropyLoss2d()
         elif args.loss == 'LS':
@@ -92,7 +93,7 @@ class Trainer(object):
 
         self.evaluator = Evaluator(self.num_of_class)
 
-        self.model = nn.DataParallel(self.model)
+        # self.model = nn.DataParallel(self.model)
         
         self.cuda = args.cuda
         if self.cuda is True:
@@ -119,8 +120,20 @@ class Trainer(object):
                 checkpoint = torch.load(args.finetune)
             else:
                 checkpoint = torch.load(args.finetune, map_location='cpu')
-            self.model.load_state_dict(checkpoint['parameters'])
-            self.start_epoch = checkpoint['epoch'] + 1
+
+            pretrained_dict = checkpoint['model_state']
+            model_dict = self.model.state_dict()
+            print("pretrained model len: {} current model len: {}\n".format(len(pretrained_dict),len(model_dict)))
+            pretrained_dict =  {k: v for k, v in pretrained_dict.items() if k in model_dict}
+            model_dict.update(pretrained_dict)
+
+            
+
+            #self.model.load_state_dict(checkpoint['model_state'])
+            self.model.load_state_dict(model_dict)
+            # self.start_epoch = checkpoint['epoch'] + 1
+            if not 'epoch' in model_dict.keys():
+                self.start_epoch = 1
         else:
             self.start_epoch = 1
         if self.mode=='train':    
