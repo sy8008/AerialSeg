@@ -162,7 +162,8 @@ class Trainer(object):
                 'optimizer': self.optimizer.state_dict(),
                 'scheduler': self.scheduler.state_dict()
             }
-            torch.save(saved_dict, f'./{self.model.__class__.__name__}_{self.dataset}_epoch{epoch}.pth.tar')
+            if epoch % 5 == 0:
+                torch.save(saved_dict, f'./{self.model.__class__.__name__}_{self.dataset}_epoch{epoch}.pth.tar')
             
             Acc,_,mIoU,_ = self.validate(epoch,save=True)
             self.writer.add_scalar('eval/Acc',Acc,epoch)
@@ -204,7 +205,7 @@ class Trainer(object):
     def validate(self,epoch,save):
         self.model.eval()
         print(f"----------validate epoch {epoch}----------")
-        if save and not os.path.exists("epoch_"+str(epoch)):
+        if save and not os.path.exists("epoch"+str(epoch)):
             os.mkdir("epoch"+str(epoch))
         num_of_imgs = len(self.eval_loader)
         for i,sample in enumerate(self.eval_loader):
