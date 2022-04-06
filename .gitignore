@@ -6,3 +6,5 @@ runs/
 epoch*/
 __pycache__/
 .vscode/
+*.png
+*.jpg

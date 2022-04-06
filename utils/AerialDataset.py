@@ -61,6 +61,14 @@ class AerialDataset(Dataset):
                     assert os.path.isfile(gt),"Ground truth %s cannot be found!" %gt
                     self.img_list.append(img)
                     self.gt_list.append(gt)
+        elif dataset=='Custom':
+            self.list = os.listdir(data_path)
+            for each_file in self.list:
+                each_file = os.path.join(data_path,each_file)
+                self.img_list.append(each_file)
+                self.gt_list.append(each_file)
+
+        
         else:
             raise NotImplementedError
         print(f"{len(self.img_list)} pairs to {self.mode}...")

@@ -65,6 +65,14 @@ def ret2mask(pred,dataset):
         label2rgb[3]=(107,142,35)
         label2rgb[4]=(0,0,142)
         label2rgb[5]=(70,70,70)
+    # use same dataset as UDD5
+    elif dataset=='Custom':
+        label2rgb[0]=(107,142,35)
+        label2rgb[1]=(102,102,156)
+        label2rgb[2]=(128,64,128)
+        label2rgb[3]=(0,0,142)
+        label2rgb[4]=(0,0,0)
+
     else:
         raise NotImplementedError
     mask = np.zeros((pred.shape[0],pred.shape[1],3),dtype=np.uint8)
