@@ -30,6 +30,7 @@ def main():
 
     parser.add_argument('--resized_width', type=int, default=1024, help='width after resize')
     parser.add_argument('--resized_height', type=int, default=1024, help='height after resize')
+    parser.add_argument('--resize', action='store_true', help='whether to resize the input image')
     
     args = parser.parse_args()
     print(args)
@@ -40,4 +41,4 @@ def main():
         my_trainer.validate(epoch=-1,save=True)
 
 if __name__ == "__main__":
-   main()
+    main()

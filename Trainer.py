@@ -212,9 +212,16 @@ class Trainer(object):
 	def validate(self,epoch,save):
 		self.model.eval()
 		print(f"----------validate epoch {epoch}----------")
-		save_dir = self.dataset + "_eval_"  + "epoch"+str(epoch)
-		if save and not os.path.exists(save_dir):
-			os.mkdir(save_dir)
+		img_save_dir = os.path.join(self.dataset + "_{}".format(self.args.model) + "_eval","image")
+		prob_save_dir = os.path.join(self.dataset + "_{}".format(self.args.model) + "_eval","prob")
+
+
+		if save and not os.path.exists(img_save_dir):
+			os.makedirs(img_save_dir)
+		
+		if save and not os.path.exists(prob_save_dir):
+			os.makedirs(prob_save_dir)	
+
 		num_of_imgs = len(self.eval_loader)
 		for i,sample in enumerate(self.eval_loader):
 			img_name,gt_name = sample['img'][0],sample['gt'][0]
@@ -223,8 +230,8 @@ class Trainer(object):
 			img = Image.open(img_name).convert('RGB')
 			
 			# for custom dataset, resize input image instead of crop
-			if self.dataset == 'Custom':
-				img = img.resize((1024,1024),Image.BILINEAR)
+			if self.dataset == 'Custom' and self.args.resize:
+				img = img.resize((self.args.resized_width,self.args.resized_height),Image.BILINEAR)
 
 
 			gt = np.array(Image.open(gt_name))
@@ -239,17 +246,19 @@ class Trainer(object):
 				tbar = tqdm(points)
 				for i,j in tbar:
 					tbar.set_description(f"{i},{j}")
-					label_map,score_map = self.test_patch(i,j,img,label_map,score_map)
+					label_map,score_map,prob_map = self.test_patch(i,j,img,label_map,score_map)
 			else:
-				label_map,score_map = self.test_patch(0,0,img,label_map,score_map)
+				label_map,score_map,prob_map = self.test_patch(0,0,img,label_map,score_map)
 				
 			#finish a large
 			if self.evaluator is not None:
 				self.evaluator.add_batch(label_map,gt)
 			if save:   
 				mask = ret2mask(label_map,dataset=self.dataset)
-				png_name = os.path.join(save_dir,os.path.basename(img_name).split('.')[0]+'.png')
+				png_name = os.path.join(img_save_dir,os.path.basename(img_name).split('.')[0]+'.png')
 				Image.fromarray(mask).save(png_name)
+				prob_map_name = os.path.join(prob_save_dir,os.path.basename(img_name).split('.')[0]+'.npy')
+				np.save(prob_map_name, prob_map)
 		
 		if self.evaluator is not None:
 			Acc = self.evaluator.Pixel_Accuracy()
@@ -280,7 +289,9 @@ class Trainer(object):
 		if self.cuda:
 			cropped = cropped.cuda()
 		out = self.model(cropped)
-		#out = torch.nn.functional.softmax(out, dim=1)
+		soft_max_out = torch.nn.functional.softmax(out, dim=1)
+		prob = soft_max_out.squeeze().data.detach().cpu().numpy()
+		prob = np.transpose(prob,(1,2,0))
 		ret = torch.max(out.squeeze(),dim=0)
 		score = ret[0].data.detach().cpu().numpy()
 		label = ret[1].data.detach().cpu().numpy()
@@ -299,7 +310,7 @@ class Trainer(object):
 			label_map = label
 			score_map = score
 
-		return label_map,score_map
+		return label_map,score_map,prob
 
 	def get_pointset(self,img):
 		W, H = img.size
