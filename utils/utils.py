@@ -33,7 +33,17 @@ def mask2label(mask,dataset):
         rgb2label[(128,64,128)]=2     # Road
         rgb2label[(107,142,35)]=3     # Vegetation
         rgb2label[(0,0,142)]=4        # Vehicle
-        rgb2label[(70,70,70)]=5       # Roof	
+        rgb2label[(70,70,70)]=5       # Roof
+    elif dataset == 'ArsUDD':
+        rgb2label[(0,64,0)]=0 # Vegetation
+        rgb2label[(192,128,0)]=1 # Building
+        rgb2label[(128,128,0)]=2 # Road
+        rgb2label[(128,128,128)]=3  # car or bike
+        rgb2label[(0,0,128)]=4 # Other
+        rgb2label[(0,0,0)]=5 # Background
+        rgb2label[(192,128,128)]=6 # Person or animal
+        rgb2label[(0,128,128)]=7 # sky
+
     else:
         raise NotImplementedError
     label_map = np.zeros((mask.shape[0],mask.shape[1]),dtype=np.uint8)
@@ -72,6 +82,16 @@ def ret2mask(pred,dataset):
         label2rgb[2]=(128,64,128)
         label2rgb[3]=(0,0,142)
         label2rgb[4]=(0,0,0)
+    
+    elif dataset =='ArsUDD':
+        label2rgb[0]=(0,64,0) # Vegetation
+        label2rgb[1]=(192,128,0) # Building
+        label2rgb[2]=(128,128,0) # Road
+        label2rgb[3]=(128,128,128)  # car or bike
+        label2rgb[4]=(0,0,128) # Other
+        label2rgb[5]=(0,0,0) # Background
+        label2rgb[6]=(192,128,128) # Person or animal
+        label2rgb[7]=(0,128,128) # sky      
 
     else:
         raise NotImplementedError

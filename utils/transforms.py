@@ -89,8 +89,13 @@ class ToTensor(object):
         img = np.array(img).astype(np.float32).transpose((2, 0, 1))
         mask = np.array(mask).astype(np.float32)
 
+        test_min = mask.min()
+        test_max = mask.max()
+
         img = torch.from_numpy(img).float()
         mask = torch.from_numpy(mask).float()
+
+
 
         return {'image': img,
                 'label': mask}

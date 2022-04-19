@@ -1,7 +1,7 @@
 from torch.utils.data.dataset import Dataset
 import os
 from PIL import Image
-#from .utils import mask2label
+from .utils import mask2label
 from .AerialTransforms import TrainAug,EvalAug
 import numpy as np
 
@@ -67,7 +67,24 @@ class AerialDataset(Dataset):
                 each_file = os.path.join(data_path,each_file)
                 self.img_list.append(each_file)
                 self.gt_list.append(each_file)
-
+        
+        elif dataset == 'ArsUDD':
+            self.img_path= os.path.join(data_path,'JPEGImages')
+            self.gt_path= os.path.join(data_path,'labels')
+            if self.mode=='train':
+                self.list=os.path.join(data_path,'train.txt')
+            else:
+                self.list=os.path.join(data_path,'val.txt')
+            with open(self.list) as f:
+                for each_file in f.readlines():
+                    gt_name = each_file.strip()
+                    img_name = gt_name.split('.')[0] + '.jpg'
+                    img = os.path.join(self.img_path,img_name)
+                    gt = os.path.join(self.gt_path,gt_name)
+                    assert os.path.isfile(img),"Images %s cannot be found!" %img
+                    assert os.path.isfile(gt),"Ground truth %s cannot be found!" %gt
+                    self.img_list.append(img)
+                    self.gt_list.append(gt)            
         
         else:
             raise NotImplementedError
@@ -83,10 +100,19 @@ class AerialDataset(Dataset):
     def __getitem__(self,index):
         if self.mode=='train':
             img = Image.open(self.img_list[index]).convert('RGB')
-            #gt = mask2label(Image.open(self.gt_list[index])) 
+            gt = mask2label(np.array(Image.open(self.gt_list[index]).convert('RGB')),self.dataset) 
             #or more efficiently, directly load label map
-            gt = Image.open(self.gt_list[index])
+            # gt = Image.open(self.gt_list[index]).convert('RGB').convert('P') # the original code  using 'P' mode to load UDD gt 
+
+            # img_test = np.array(img)
+            # gt_test = np.array(gt)
+            # test_bin = np.bincount(gt_test.reshape(-1))
+            # test_bin2 = np.unique(gt_test.reshape(-1), axis=0)
             #Trans from PIL pair to tensor pair
+            # gt = Image.fromarray(gt)
+            # palette = gt.getpalette()
+            # res = np.array(palette).reshape(-1,3)
+            gt = Image.fromarray(gt).convert('L')
             return self.augtrans(img,gt)
         else:
             sample = {'img':self.img_list[index],'gt':self.gt_list[index]}

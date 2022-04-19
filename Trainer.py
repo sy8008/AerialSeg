@@ -2,9 +2,10 @@ from torch.utils.data.dataloader import DataLoader
 from utils.AerialDataset import AerialDataset
 import torch
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 import torch.nn as nn
 import torch.optim as opt
-from utils.utils import ret2mask,get_test_times
+from utils.utils import ret2mask,get_test_times,mask2label
 import matplotlib.pyplot as plt
 from utils.metrics import Evaluator
 import numpy as np
@@ -52,7 +53,9 @@ class Trainer(object):
 		elif self.dataset=='Custom':
 			self.num_of_class = 5 # model is trained by UDD5 Dataset
 			self.epoch_repeat = 1 # do not repeat test
-		
+		elif self.dataset == 'ArsUDD':
+			self.num_of_class = 8
+			self.epoch_repeat = 1 # do not repeat test
 		else:
 			raise NotImplementedError
 
@@ -121,6 +124,9 @@ class Trainer(object):
 			self.optimizer.load_state_dict(checkpoint['optimizer'])
 			self.scheduler.load_state_dict(checkpoint['scheduler'])
 			self.start_epoch = checkpoint['epoch'] + 1
+
+
+
 			#start from next epoch
 		elif self.finetune != None:
 			print("Loading existing model...")
@@ -147,6 +153,12 @@ class Trainer(object):
 		if self.mode=='train':    
 			self.writer = SummaryWriter(comment='-'+self.dataset+'_'+self.model.__class__.__name__+'_'+args.loss)
 		self.init_eval = args.init_eval
+
+		cnt = 0
+		for param in self.model.decoder.parameters():
+			if  param.requires_grad:
+				cnt +=1
+		print("{} params requires grad".format(cnt))
 		
 	#Note: self.start_epoch and self.epochs are only used in run() to schedule training & validation
 	def run(self):
@@ -235,14 +247,16 @@ class Trainer(object):
 				img = img.resize((self.args.resized_width,self.args.resized_height),Image.BILINEAR)
 
 
-			gt = np.array(Image.open(gt_name))
+			# gt = np.array(Image.open(gt_name).convert('P'))
+			gt = mask2label(np.array(Image.open(gt_name).convert('RGB')),self.dataset)
+			# gt =Image.fromarray(gt).convert('L') 
 			times, points = self.get_pointset(img)
 			print(f'{times} tests will be carried out on {img_name}...')
 			W,H = img.size #TODO: check numpy & PIL dimensions
 			label_map = np.zeros([H,W],dtype=np.uint8)
 			score_map = np.zeros([H,W],dtype=np.uint8)
 			
-			if self.dataset != 'Custom':
+			if self.dataset == 'UDD5':
 				#score_map not necessarily to be uint8 but uint8 gets better result...
 				tbar = tqdm(points)
 				for i,j in tbar:
@@ -253,6 +267,7 @@ class Trainer(object):
 				
 			#finish a large
 			if self.evaluator is not None:
+				test_gt_bin = np.bincount(gt.reshape(-1))
 				self.evaluator.add_batch(label_map,gt)
 			if save:   
 				mask = ret2mask(label_map,dataset=self.dataset)
@@ -281,7 +296,7 @@ class Trainer(object):
 									std = [0.229, 0.224, 0.225])
 		#print(img.size)
 		# do not crop Custom Dataset
-		if self.dataset != 'Custom':
+		if self.dataset == 'UDD5':
 			cropped = img.crop((i,j,i+self.eval_crop_size,j+self.eval_crop_size))
 		else:
 			cropped = img
@@ -297,7 +312,7 @@ class Trainer(object):
 		score = ret[0].data.detach().cpu().numpy()
 		label = ret[1].data.detach().cpu().numpy()
 
-		if self.dataset != 'Custom':
+		if self.dataset == 'UDD5':
 			#numpy array's shape is [H,W] while PIL.Image is [W,H]
 			# label_map and score_map are in shape [H,W], img is in shape [W,H]
 			score_temp = score_map[j:j+self.eval_crop_size,i:i+self.eval_crop_size]

@@ -26,7 +26,7 @@ def main():
     parser.add_argument('--schedule_mode', type=str, default='poly', help='which scheduler to apply')
     parser.add_argument('--init_eval', type=str2bool, default=False, help='whether to start with evaluation')
     parser.add_argument('--lr', type=float, default=5e-4, help='learning rate of training')
-    parser.add_argument('--dataset', type=str, default='Potsdam', choices=['Potsdam','UDD5','UDD6','Custom'], help='which dataset to train')
+    parser.add_argument('--dataset', type=str, default='Potsdam', choices=['Potsdam','UDD5','UDD6','Custom','ArsUDD'], help='which dataset to train')
 
     parser.add_argument('--resized_width', type=int, default=1024, help='width after resize')
     parser.add_argument('--resized_height', type=int, default=1024, help='height after resize')

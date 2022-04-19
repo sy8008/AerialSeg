@@ -1,11 +1,13 @@
 #!/bin/bash
+
+# "--finetune" "/home/sy/AerialSeg/checkpoint/ENet.pth" \
 CUDA_VISIBLE_DEVICES=3 python train.py \
     "--mode" "train" \
-    "--data_path" "/home/sy/dataset/UDD/UDD5" \
-    "--train_batch_size" "16" \
-    "--resume" "/home/sy/AerialSeg/DeepLab_UDD5_epoch10.pth.tar" \
+    "--data_path" "/home/sy/dataset/ArsUDD" \
+    "--train_batch_size" "8" \
     "--cuda" "True" \
     "--model" "DeepLabV3+" \
-    "--dataset" "UDD5" \
+    "--dataset" "ArsUDD" \
     "--epochs" "100" \
-    "--schedule_mode" "miou"
+    "--schedule_mode" "step" \
+    "--loss" "LS"
