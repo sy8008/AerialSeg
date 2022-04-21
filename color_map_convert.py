@@ -3,6 +3,7 @@ from PIL import Image
 import os
 from tqdm import tqdm
 import random
+import cv2
 
 # img = Image.open(img_name).convert('RGB')
 # Image.fromarray(mask).save(png_name)
@@ -38,14 +39,14 @@ import random
 
 
 
-test_label_path = "/home/sy/dataset/ArsUDD/labels/000001_001.png"
-test_label_path2 = "/home/sy/dataset/UDD/UDD5/train/gt/000001.png"
-img = Image.open(test_label_path)
-img = img.convert('P', palette=Image.ADAPTIVE, colors=8)
-img = np.array(img)
-cnt = np.bincount(img.reshape(-1))
-#cnt2 = np.unique(img.reshape(-1, img.shape[-1]), axis=0, return_counts=True)
-cnt2 = np.unique(img.reshape(-1),return_counts=True)
+# test_label_path = "/home/sy/dataset/ArsUDD/labels/000001_001.png"
+# test_label_path2 = "/home/sy/dataset/UDD/UDD5/train/gt/000001.png"
+# img = Image.open(test_label_path)
+# img = img.convert('P', palette=Image.ADAPTIVE, colors=8)
+# img = np.array(img)
+# cnt = np.bincount(img.reshape(-1))
+# #cnt2 = np.unique(img.reshape(-1, img.shape[-1]), axis=0, return_counts=True)
+# cnt2 = np.unique(img.reshape(-1),return_counts=True)
 
 # Aeroscape Dataset
 rgb2label_aeroscape = {}
@@ -89,6 +90,28 @@ label_aeroscape2ArsUDD = {0:5,1:6,2:3,3:0,4:4,5:7,6:2,7:6,8:1,9:3,10:4,11:4}
 
 
 rgb_aeroscape2ArsUDD = dict((k,label2rgb_ArsUDD[label_aeroscape2ArsUDD[v]]) for k,v in rgb2label_aeroscape.items())
+
+
+
+udd5_test_label = "/home/sy/Dataset/UDD/UDD5/train/gt/DJI_0445.png"
+test_label = Image.open(udd5_test_label).convert('RGB')
+
+test_label = test_label.resize((1024,768),Image.NEAREST)
+test_label= np.array(test_label)
+test_mask = np.ones((test_label.shape[0],test_label.shape[1]),dtype=np.uint8)
+
+
+
+
+for color in rgb2label_UDD5.keys():
+    color = np.array(color)
+    test_mask[np.where(np.all(test_label == color, axis=-1))] = 0
+
+print(np.sum(test_mask))
+
+
+
+
 
 def my_func(val):
     global rgb_aeroscape2ArsUDD

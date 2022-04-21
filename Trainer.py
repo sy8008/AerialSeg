@@ -2,7 +2,7 @@ from torch.utils.data.dataloader import DataLoader
 from utils.AerialDataset import AerialDataset
 import torch
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 import torch.nn as nn
 import torch.optim as opt
 from utils.utils import ret2mask,get_test_times,mask2label
@@ -46,12 +46,13 @@ class Trainer(object):
 			self.epoch_repeat = get_test_times(6000,6000,self.train_crop_size,self.train_crop_size)
 		elif self.dataset=='UDD5':
 			self.num_of_class=5
+			# self.num_of_class = 8 # to match the label space of Ars UDD Dataset
 			self.epoch_repeat = get_test_times(4000,3000,self.train_crop_size,self.train_crop_size)
 		elif self.dataset=='UDD6':
 			self.num_of_class=6
 			self.epoch_repeat = get_test_times(4000,3000,self.train_crop_size,self.train_crop_size)
 		elif self.dataset=='Custom':
-			self.num_of_class = 5 # model is trained by UDD5 Dataset
+			self.num_of_class = 5 # match the label space of ArsUDD
 			self.epoch_repeat = 1 # do not repeat test
 		elif self.dataset == 'ArsUDD':
 			self.num_of_class = 8
@@ -154,11 +155,11 @@ class Trainer(object):
 			self.writer = SummaryWriter(comment='-'+self.dataset+'_'+self.model.__class__.__name__+'_'+args.loss)
 		self.init_eval = args.init_eval
 
-		cnt = 0
-		for param in self.model.decoder.parameters():
-			if  param.requires_grad:
-				cnt +=1
-		print("{} params requires grad".format(cnt))
+		# cnt = 0
+		# for param in self.model.decoder.parameters():
+		# 	if  param.requires_grad:
+		# 		cnt +=1
+		# print("{} params requires grad".format(cnt))
 		
 	#Note: self.start_epoch and self.epochs are only used in run() to schedule training & validation
 	def run(self):
@@ -225,9 +226,9 @@ class Trainer(object):
 	def validate(self,epoch,save):
 		self.model.eval()
 		print(f"----------validate epoch {epoch}----------")
-		img_save_dir = os.path.join(self.dataset + "_{}".format(self.args.model) + "_eval","image")
-		prob_save_dir = os.path.join(self.dataset + "_{}".format(self.args.model) + "_eval","prob")
-
+		img_save_dir = os.path.join(self.args.save_dir,self.dataset + "_{}".format(self.args.model) + "_eval","image")
+		prob_save_dir = os.path.join(self.args.save_dir,self.dataset + "_{}".format(self.args.model) + "_eval","prob")
+		
 
 		if save and not os.path.exists(img_save_dir):
 			os.makedirs(img_save_dir)
@@ -250,8 +251,10 @@ class Trainer(object):
 			# gt = np.array(Image.open(gt_name).convert('P'))
 			gt = mask2label(np.array(Image.open(gt_name).convert('RGB')),self.dataset)
 			# gt =Image.fromarray(gt).convert('L') 
-			times, points = self.get_pointset(img)
-			print(f'{times} tests will be carried out on {img_name}...')
+			if self.dataset != 'Custom':
+				times, points = self.get_pointset(img)
+				print(f'{times} tests will be carried out on {img_name}...')
+				
 			W,H = img.size #TODO: check numpy & PIL dimensions
 			label_map = np.zeros([H,W],dtype=np.uint8)
 			score_map = np.zeros([H,W],dtype=np.uint8)

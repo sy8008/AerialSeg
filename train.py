@@ -32,6 +32,8 @@ def main():
     parser.add_argument('--resized_height', type=int, default=1024, help='height after resize')
     parser.add_argument('--resize', action='store_true', help='whether to resize the input image')
     
+    parser.add_argument('--save_dir', type=str, default='./', help='path of saving directory')
+
     args = parser.parse_args()
     print(args)
     my_trainer = Trainer(args)

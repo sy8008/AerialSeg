@@ -21,7 +21,7 @@ def mask2label(mask,dataset):
         rgb2label[(0,255,0)]=3     # Tree
         rgb2label[(255,255,0)]=4   # Car
         rgb2label[(255,0,0)]=5     # Clutter / background
-    elif dataset=='UDD5':
+    elif dataset=='UDD5' or dataset == 'Custom':
         rgb2label[(107,142,35)]=0     # Vegetation
         rgb2label[(102,102,156)]=1    # Building
         rgb2label[(128,64,128)]=2     # Road
@@ -62,7 +62,7 @@ def ret2mask(pred,dataset):
         label2rgb[3]=(0,255,0)
         label2rgb[4]=(255,255,0)
         label2rgb[5]=(255,0,0)
-    elif dataset=='UDD5':
+    elif dataset=='UDD5' or dataset == 'Custom':
         label2rgb[0]=(107,142,35)
         label2rgb[1]=(102,102,156)
         label2rgb[2]=(128,64,128)
@@ -75,13 +75,6 @@ def ret2mask(pred,dataset):
         label2rgb[3]=(107,142,35)
         label2rgb[4]=(0,0,142)
         label2rgb[5]=(70,70,70)
-    # use same dataset as UDD5
-    elif dataset=='Custom':
-        label2rgb[0]=(107,142,35)
-        label2rgb[1]=(102,102,156)
-        label2rgb[2]=(128,64,128)
-        label2rgb[3]=(0,0,142)
-        label2rgb[4]=(0,0,0)
     
     elif dataset =='ArsUDD':
         label2rgb[0]=(0,64,0) # Vegetation
