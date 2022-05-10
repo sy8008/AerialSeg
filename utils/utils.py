@@ -21,7 +21,7 @@ def mask2label(mask,dataset):
         rgb2label[(0,255,0)]=3     # Tree
         rgb2label[(255,255,0)]=4   # Car
         rgb2label[(255,0,0)]=5     # Clutter / background
-    elif dataset=='UDD5' or dataset == 'Custom':
+    elif dataset=='UDD5':
         rgb2label[(107,142,35)]=0     # Vegetation
         rgb2label[(102,102,156)]=1    # Building
         rgb2label[(128,64,128)]=2     # Road
@@ -43,6 +43,15 @@ def mask2label(mask,dataset):
         rgb2label[(0,0,0)]=5 # Background
         rgb2label[(192,128,128)]=6 # Person or animal
         rgb2label[(0,128,128)]=7 # sky
+    elif dataset == 'uavid' or dataset == 'Custom':
+        rgb2label[(0,0,0)]=0 # Background clutter
+        rgb2label[(128,0,0)]=1 # Building
+        rgb2label[(128,64,128)]=2 # Road
+        rgb2label[(0,128,0)]=3  # Tree
+        rgb2label[(128,128,0)]=4 # Low vegetation
+        rgb2label[(64,0,128)]=5 # Moving car
+        rgb2label[(192,0,192)]=6 # Static car
+        rgb2label[(64,64,0)]=7 # Human   
 
     else:
         raise NotImplementedError
@@ -62,7 +71,7 @@ def ret2mask(pred,dataset):
         label2rgb[3]=(0,255,0)
         label2rgb[4]=(255,255,0)
         label2rgb[5]=(255,0,0)
-    elif dataset=='UDD5' or dataset == 'Custom':
+    elif dataset=='UDD5':
         label2rgb[0]=(107,142,35)
         label2rgb[1]=(102,102,156)
         label2rgb[2]=(128,64,128)
@@ -84,7 +93,17 @@ def ret2mask(pred,dataset):
         label2rgb[4]=(0,0,128) # Other
         label2rgb[5]=(0,0,0) # Background
         label2rgb[6]=(192,128,128) # Person or animal
-        label2rgb[7]=(0,128,128) # sky      
+        label2rgb[7]=(0,128,128) # sky 
+    elif dataset == 'uavid' or dataset == 'Custom':
+        label2rgb[0]=(0,0,0) # Background clutter
+        label2rgb[1]=(128,0,0) # Building
+        label2rgb[2]=(128,64,128) # Road
+        label2rgb[3]=(0,128,0)  # Tree
+        label2rgb[4]=(128,128,0) # Low vegetation
+        label2rgb[5]=(64,0,128) # Moving car
+        label2rgb[6]=(192,0,192) # Static car
+        label2rgb[7]=(64,64,0) # Human 
+
 
     else:
         raise NotImplementedError

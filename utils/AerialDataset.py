@@ -86,6 +86,25 @@ class AerialDataset(Dataset):
                     self.img_list.append(img)
                     self.gt_list.append(gt)            
         
+        elif dataset=='uavid':
+            if self.mode=='train':
+                self.img_path= os.path.join(data_path,"uavid_train","Images")
+                self.gt_path= os.path.join(data_path,"uavid_train","Labels")
+                self.filename_list= os.listdir(self.img_path)
+            else:
+                self.img_path= os.path.join(data_path,"uavid_val","Images")
+                self.gt_path= os.path.join(data_path,"uavid_val","Labels")
+                self.filename_list= os.listdir(self.img_path)
+            
+            
+            for each_file in self.filename_list:
+                # img_name,gt_name = each_file.strip().split(' ')[0],each_file.strip().split(' ')[1]
+                img = os.path.join(self.img_path,each_file)
+                gt = os.path.join(self.gt_path,each_file)
+                assert os.path.isfile(img),"Images %s cannot be found!" %img
+                assert os.path.isfile(gt),"Ground truth %s cannot be found!" %gt
+                self.img_list.append(img)
+                self.gt_list.append(gt)        
         else:
             raise NotImplementedError
         print(f"{len(self.img_list)} pairs to {self.mode}...")

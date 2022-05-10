@@ -2,7 +2,7 @@ from torch.utils.data.dataloader import DataLoader
 from utils.AerialDataset import AerialDataset
 import torch
 import os
-#os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 import torch.nn as nn
 import torch.optim as opt
 from utils.utils import ret2mask,get_test_times,mask2label
@@ -52,11 +52,15 @@ class Trainer(object):
 			self.num_of_class=6
 			self.epoch_repeat = get_test_times(4000,3000,self.train_crop_size,self.train_crop_size)
 		elif self.dataset=='Custom':
-			self.num_of_class = 5 # match the label space of ArsUDD
+			self.num_of_class = 8 # match the label space of uavid
 			self.epoch_repeat = 1 # do not repeat test
 		elif self.dataset == 'ArsUDD':
 			self.num_of_class = 8
 			self.epoch_repeat = 1 # do not repeat test
+		elif self.dataset == 'uavid':
+			self.num_of_class = 8
+			self.epoch_repeat = 1 # do not repeat test	
+
 		else:
 			raise NotImplementedError
 
@@ -136,16 +140,32 @@ class Trainer(object):
 			else:
 				checkpoint = torch.load(args.finetune, map_location='cpu')
 
-			pretrained_dict = checkpoint['model_state']
+			# pretrained_dict = checkpoint['model_state']
+			pretrained_dict = checkpoint['parameters']
 			model_dict = self.model.state_dict()
 			print("pretrained model len: {} current model len: {}\n".format(len(pretrained_dict),len(model_dict)))
-			pretrained_dict =  {k: v for k, v in pretrained_dict.items() if k in model_dict}
+			pretrained_dict =  {k: v for k, v in pretrained_dict.items() if k in model_dict and "decoder.output.7" not in k}
 			model_dict.update(pretrained_dict)
-
+    
 			
 
 			#self.model.load_state_dict(checkpoint['model_state'])
 			self.model.load_state_dict(model_dict)
+			total_param_cnt = 0
+			for param in self.model.parameters():
+				param.requires_grad = True
+				total_param_cnt += 1
+			
+			print("total params: {} ".format(total_param_cnt))
+			
+			require_grad_cnt = 0
+			for param in self.model.parameters():
+				if param.requires_grad:
+					require_grad_cnt += 1
+			
+			print("{} params requires grad".format(require_grad_cnt))
+
+
 			# self.start_epoch = checkpoint['epoch'] + 1
 			if not 'epoch' in model_dict.keys():
 				self.start_epoch = 1
