@@ -1,5 +1,6 @@
 import argparse
 from Trainer import Trainer
+import os
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -36,6 +37,16 @@ def main():
 
     args = parser.parse_args()
     print(args)
+    argsDict = args.__dict__
+    project_base_dir = os.path.abspath(os.path.join(args.data_path, "../"))
+    args_save_dir = os.path.join(project_base_dir,"saved_args")
+    if not os.path.exists(args_save_dir):
+        os.makedirs(args_save_dir)
+    with open(os.path.join(args_save_dir,"AerialSeg_args.txt"), 'w') as f:
+        f.writelines('------------------ start ------------------' + '\n')
+        for eachArg, value in argsDict.items():
+            f.writelines(eachArg + ' : ' + str(value) + '\n')
+        f.writelines('------------------- end -------------------')
     my_trainer = Trainer(args)
     if args.mode=='train':
         my_trainer.run()
